@@ -1,0 +1,271 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>ForgeHub — Pricing</title>
+  <style>
+    :root{--bg:#071025;--card:#0b1220;--accent:#ff4d6d;--secondary:#7c4dff;color:#e6eef8}
+    body{margin:0;font-family:Segoe UI,Roboto,Arial;background:linear-gradient(180deg,#041025 0%, #071025 100%);color:var(--accent);}
+    .container{max-width:1400px;margin:32px auto;padding:20px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:12px}
+    h1{margin:0 0 8px;color:var(--accent);font-size:36px;text-align:center}
+    .subtitle{text-align:center;color:#9fb1c8;margin-bottom:32px}
+    .pricing-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-bottom:32px}
+    .pricing-card{padding:20px;background:#071226;border-radius:10px;border:2px solid rgba(255,77,109,0.1);transition:all 0.3s ease}
+    .pricing-card:hover{border-color:var(--accent);transform:translateY(-4px);box-shadow:0 8px 24px rgba(255,77,109,0.15)}
+    .pricing-card.featured{border-color:var(--accent);box-shadow:0 0 20px rgba(255,77,109,0.3)}
+    .package-name{font-size:20px;font-weight:bold;color:var(--accent);margin-bottom:8px}
+    .package-desc{font-size:12px;color:#9fb1c8;margin-bottom:12px;min-height:32px}
+    .package-price{font-size:32px;font-weight:bold;color:var(--secondary);margin:12px 0}
+    .price-period{font-size:12px;color:#9fb1c8}
+    .features{list-style:none;padding:0;margin:16px 0;font-size:13px}
+    .features li{padding:6px 0;color:#bfe7ff;border-bottom:1px solid rgba(255,255,255,0.05)}
+    .features li:last-child{border-bottom:none}
+    .features li:before{content:"✓ ";color:var(--accent);font-weight:bold;margin-right:6px}
+    .action-button{width:100%;padding:10px;margin-top:16px;border:none;border-radius:8px;cursor:pointer;font-weight:bold;transition:all 0.3s;background:linear-gradient(90deg,#ff4d6d,#7c4dff);color:white;text-decoration:none;display:inline-block;text-align:center}
+    .action-button:hover{opacity:0.9;transform:scale(1.02)}
+    .action-button.secondary{background:rgba(124,77,255,0.2);color:var(--secondary);border:1px solid var(--secondary)}
+    .action-button.secondary:hover{background:rgba(124,77,255,0.3)}
+    .enterprise-section{margin-top:40px;padding:24px;background:rgba(124,77,255,0.1);border:2px solid var(--secondary);border-radius:12px}
+    .enterprise-title{font-size:24px;color:var(--secondary);margin-bottom:16px}
+    .seats-control{margin:16px 0}
+    .seats-label{display:block;margin-bottom:8px;color:#9fb1c8}
+    .seats-input{width:100%;padding:8px;border-radius:6px;border:1px solid rgba(124,77,255,0.3);background:rgba(0,0,0,0.2);color:var(--accent);font-size:14px}
+    .seats-display{font-size:28px;color:var(--secondary);margin:12px 0;font-weight:bold}
+    .seat-price{color:#9fb1c8;font-size:13px;margin-top:8px}
+    .back-link{display:inline-block;margin-bottom:16px;color:var(--accent);text-decoration:none;cursor:pointer}
+    .back-link:hover{text-decoration:underline}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a onclick="history.back()" class="back-link">← Back to ForgeHub</a>
+    <h1>ForgeHub Pricing Plans</h1>
+    <div class="subtitle">Choose the perfect plan for your development needs. All plans include 24/7 support.</div>
+
+    <div class="pricing-grid">
+      <!-- Package 1: Starter -->
+      <div class="pricing-card">
+        <div class="package-name">Starter</div>
+        <div class="package-desc">Perfect for beginners</div>
+        <div class="package-price">$9<span class="price-period">/mo</span></div>
+        <ul class="features">
+          <li>1 Repository</li>
+          <li>5 Collaborators</li>
+          <li>1 GB Storage</li>
+          <li>Basic Analytics</li>
+          <li>Email Support</li>
+        </ul>
+        <a href="https://www.youtube.com" target="_blank" class="action-button">Get Started</a>
+      </div>
+
+      <!-- Package 2: Growth -->
+      <div class="pricing-card">
+        <div class="package-name">Growth</div>
+        <div class="package-desc">For growing teams</div>
+        <div class="package-price">$29<span class="price-period">/mo</span></div>
+        <ul class="features">
+          <li>Unlimited Repos</li>
+          <li>25 Collaborators</li>
+          <li>50 GB Storage</li>
+          <li>Advanced Analytics</li>
+          <li>Priority Support</li>
+        </ul>
+        <a href="https://www.google.com" target="_blank" class="action-button">Get Started</a>
+      </div>
+
+      <!-- Package 3: Professional -->
+      <div class="pricing-card featured">
+        <div class="package-name">Professional</div>
+        <div class="package-desc">Most popular option</div>
+        <div class="package-price">$79<span class="price-period">/mo</span></div>
+        <ul class="features">
+          <li>Unlimited Repos</li>
+          <li>100 Collaborators</li>
+          <li>500 GB Storage</li>
+          <li>Real-time Analytics</li>
+          <li>24/7 Support</li>
+        </ul>
+        <a href="https://www.youtube.com" target="_blank" class="action-button">Get Started</a>
+      </div>
+
+      <!-- Package 4: Business -->
+      <div class="pricing-card">
+        <div class="package-name">Business</div>
+        <div class="package-desc">For scaling companies</div>
+        <div class="package-price">$199<span class="price-period">/mo</span></div>
+        <ul class="features">
+          <li>Unlimited Repos & Collaborators</li>
+          <li>2 TB Storage</li>
+          <li>Custom Analytics</li>
+          <li>Dedicated Manager</li>
+          <li>SLA Guarantee</li>
+        </ul>
+        <a href="https://www.google.com" target="_blank" class="action-button">Get Started</a>
+      </div>
+
+      <!-- Package 5: Developer Pro -->
+      <div class="pricing-card">
+        <div class="package-name">Developer Pro</div>
+        <div class="package-desc">Code at scale</div>
+        <div class="package-price">$49<span class="price-period">/mo</span></div>
+        <ul class="features">
+          <li>100 Repositories</li>
+          <li>50 Collaborators</li>
+          <li>100 GB Storage</li>
+          <li>CI/CD Pipeline Access</li>
+          <li>Priority Support</li>
+        </ul>
+        <a href="https://www.youtube.com" target="_blank" class="action-button">Get Started</a>
+      </div>
+
+      <!-- Package 6: Team Starter -->
+      <div class="pricing-card">
+        <div class="package-name">Team Starter</div>
+        <div class="package-desc">Small teams unite</div>
+        <div class="package-price">$39<span class="price-period">/mo</span></div>
+        <ul class="features">
+          <li>20 Repositories</li>
+          <li>15 Collaborators</li>
+          <li>50 GB Storage</li>
+          <li>Team Management</li>
+          <li>Email Support</li>
+        </ul>
+        <a href="https://www.google.com" target="_blank" class="action-button">Get Started</a>
+      </div>
+
+      <!-- Package 7: Agency -->
+      <div class="pricing-card">
+        <div class="package-name">Agency</div>
+        <div class="package-desc">Multi-project power</div>
+        <div class="package-price">$149<span class="price-period">/mo</span></div>
+        <ul class="features">
+          <li>500+ Repositories</li>
+          <li>200 Collaborators</li>
+          <li>1 TB Storage</li>
+          <li>White Label Options</li>
+          <li>Dedicated Support</li>
+        </ul>
+        <a href="https://www.youtube.com" target="_blank" class="action-button">Get Started</a>
+      </div>
+
+      <!-- Package 8: Startup -->
+      <div class="pricing-card">
+        <div class="package-name">Startup</div>
+        <div class="package-desc">Launch your vision</div>
+        <div class="package-price">$59<span class="price-period">/mo</span></div>
+        <ul class="features">
+          <li>50 Repositories</li>
+          <li>30 Collaborators</li>
+          <li>150 GB Storage</li>
+          <li>API Access</li>
+          <li>Priority Support</li>
+        </ul>
+        <a href="https://www.google.com" target="_blank" class="action-button">Get Started</a>
+      </div>
+
+      <!-- Package 9: Studio -->
+      <div class="pricing-card">
+        <div class="package-name">Studio</div>
+        <div class="package-desc">Creative collaboration</div>
+        <div class="package-price">$69<span class="price-period">/mo</span></div>
+        <ul class="features">
+          <li>Unlimited Repositories</li>
+          <li>75 Collaborators</li>
+          <li>350 GB Storage</li>
+          <li>Design Assets Library</li>
+          <li>Premium Support</li>
+        </ul>
+        <a href="https://www.youtube.com" target="_blank" class="action-button">Get Started</a>
+      </div>
+
+      <!-- Package 10: Enterprise Plus -->
+      <div class="pricing-card featured">
+        <div class="package-name">Enterprise Plus</div>
+        <div class="package-desc">Ultimate flexibility</div>
+        <div class="package-price">Custom<span class="price-period">/mo</span></div>
+        <ul class="features">
+          <li>Everything in all plans</li>
+          <li>Unlimited Everything</li>
+          <li>Custom Integrations</li>
+          <li>On-Premise Option</li>
+          <li>24/7 VIP Support</li>
+        </ul>
+        <a href="https://www.google.com" target="_blank" class="action-button">Contact Sales</a>
+      </div>
+    </div>
+
+    <!-- Enterprise Section with Seat Slider -->
+    <div class="enterprise-section">
+      <div class="enterprise-title">Enterprise Plan - Customize Your Seats</div>
+      <p style="color:#9fb1c8;margin-bottom:16px">Enterprise plans scale with your team. Adjust the number of seats below to see your custom pricing.</p>
+      
+      <div class="seats-control">
+        <label class="seats-label">Number of Seats:</label>
+        <input type="range" id="seatsSlider" class="seats-input" min="1" max="500" value="10" style="height:6px;cursor:pointer">
+      </div>
+
+      <div class="seats-display">
+        <span id="seatsDisplay">10</span> Seats
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px">
+        <div>
+          <div style="color:#9fb1c8;font-size:12px">Price per Seat (Annual)</div>
+          <div style="font-size:24px;color:var(--secondary);font-weight:bold">$<span id="pricePerSeat">599</span></div>
+          <div class="seat-price">Bulk discounts applied automatically</div>
+        </div>
+        <div>
+          <div style="color:#9fb1c8;font-size:12px">Total Annual Cost</div>
+          <div style="font-size:24px;color:var(--secondary);font-weight:bold">$<span id="totalCost">5990</span></div>
+          <div class="seat-price">Billed annually, save 20%</div>
+        </div>
+      </div>
+
+      <div style="margin-top:20px;display:flex;gap:12px">
+        <a href="https://www.youtube.com" target="_blank" class="action-button" style="flex:1">Schedule Demo</a>
+        <a href="https://www.google.com" target="_blank" class="action-button secondary" style="flex:1">Request Quote</a>
+      </div>
+    </div>
+
+    <div style="margin-top:40px;text-align:center;color:#9fb1c8">
+      <p>All plans come with a 14-day free trial. No credit card required.</p>
+      <p style="font-size:12px">Questions? <a href="https://www.youtube.com" target="_blank" style="color:var(--accent);text-decoration:none">Contact our sales team</a></p>
+    </div>
+  </div>
+
+  <script>
+    const seatsSlider = document.getElementById('seatsSlider');
+    const seatsDisplay = document.getElementById('seatsDisplay');
+    const pricePerSeat = document.getElementById('pricePerSeat');
+    const totalCost = document.getElementById('totalCost');
+
+    function calculatePrice(seats) {
+      let basePrice = 599;
+      let discount = 0;
+
+      // Bulk discount tiers
+      if (seats >= 100) discount = 0.30; // 30% off
+      else if (seats >= 50) discount = 0.20;  // 20% off
+      else if (seats >= 20) discount = 0.10;  // 10% off
+
+      const finalPrice = Math.round(basePrice * (1 - discount));
+      return { finalPrice, totalAnnual: finalPrice * seats };
+    }
+
+    seatsSlider.addEventListener('input', function() {
+      const seats = parseInt(this.value);
+      const { finalPrice, totalAnnual } = calculatePrice(seats);
+
+      seatsDisplay.textContent = seats;
+      pricePerSeat.textContent = finalPrice;
+      totalCost.textContent = totalAnnual.toLocaleString();
+    });
+
+    // Initialize
+    const { finalPrice, totalAnnual } = calculatePrice(10);
+    pricePerSeat.textContent = finalPrice;
+    totalCost.textContent = totalAnnual.toLocaleString();
+  </script>
+</body>
+</html>
