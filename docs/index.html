@@ -297,6 +297,49 @@
       color: var(--text-secondary);
     }
 
+    .section-3d {
+      max-width: 1200px;
+      margin: 100px auto;
+      padding: 60px 24px;
+      text-align: center;
+    }
+
+    .section-3d h2 {
+      font-size: clamp(32px, 5vw, 44px);
+      font-weight: 700;
+      margin-bottom: 16px;
+      letter-spacing: -0.5px;
+    }
+
+    .section-subtitle {
+      font-size: 16px;
+      color: var(--text-secondary);
+      margin-bottom: 40px;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .canvas-wrapper {
+      background: var(--glass-light);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 24px;
+      overflow: hidden;
+      aspect-ratio: 16 / 9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      max-height: 600px;
+    }
+
+    #canvas3d {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
     .form-section {
       max-width: 800px;
       margin: 100px auto;
@@ -457,6 +500,7 @@
       }
     }
   </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
   <nav>
@@ -539,6 +583,14 @@
           <div style="font-size: 12px; color: var(--text-secondary);">A demo repository</div>
         </div>
       </div>
+    </div>
+  </section>
+
+  <section class="section-3d">
+    <h2 class="section-title">Interactive Experience</h2>
+    <p class="section-subtitle">Scroll to interact with our 3D model — drag your mouse or scroll to control the rotation</p>
+    <div class="canvas-wrapper">
+      <canvas id="canvas3d"></canvas>
     </div>
   </section>
 
@@ -627,6 +679,101 @@
     }
 
     updateUserLabel();
+
+    // ===== 3D Scene with Scroll Physics =====
+    let canvas = document.getElementById('canvas3d');
+    if (canvas && typeof THREE !== 'undefined') {
+      let scene, camera, renderer, cube, rotationVelocity = { x: 0, y: 0, z: 0 };
+      
+      function init3D() {
+        const width = canvas.parentElement.clientWidth;
+        const height = canvas.parentElement.clientHeight;
+        
+        scene = new THREE.Scene();
+        camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+        renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+        renderer.setSize(width, height);
+        renderer.setClearColor(0x000000, 0);
+        
+        camera.position.z = 3;
+        
+        // Create geometry with gradient material
+        const geometry = new THREE.BoxGeometry(1.5, 1.5, 1.5);
+        const materials = [
+          new THREE.MeshPhongMaterial({ color: 0xff6b6b }),
+          new THREE.MeshPhongMaterial({ color: 0x7c3aed }),
+          new THREE.MeshPhongMaterial({ color: 0x00d4ff }),
+          new THREE.MeshPhongMaterial({ color: 0xff6b6b }),
+          new THREE.MeshPhongMaterial({ color: 0xffd700 }),
+          new THREE.MeshPhongMaterial({ color: 0x7c3aed })
+        ];
+        cube = new THREE.Mesh(geometry, materials);
+        scene.add(cube);
+        
+        // Add lighting
+        const light1 = new THREE.DirectionalLight(0xffffff, 1);
+        light1.position.set(5, 5, 5);
+        scene.add(light1);
+        
+        const light2 = new THREE.DirectionalLight(0xff6b6b, 0.5);
+        light2.position.set(-5, -5, 5);
+        scene.add(light2);
+        
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
+        scene.add(ambientLight);
+        
+        // Animation loop
+        function animate() {
+          requestAnimationFrame(animate);
+          
+          // Apply velocity to rotation
+          cube.rotation.x += rotationVelocity.x;
+          cube.rotation.y += rotationVelocity.y;
+          cube.rotation.z += rotationVelocity.z;
+          
+          // Apply damping (slowdown)
+          rotationVelocity.x *= 0.96;
+          rotationVelocity.y *= 0.96;
+          rotationVelocity.z *= 0.96;
+          
+          renderer.render(scene, camera);
+        }
+        
+        animate();
+        
+        // Handle window resize
+        window.addEventListener('resize', () => {
+          const newWidth = canvas.parentElement.clientWidth;
+          const newHeight = canvas.parentElement.clientHeight;
+          camera.aspect = newWidth / newHeight;
+          camera.updateProjectionMatrix();
+          renderer.setSize(newWidth, newHeight);
+        });
+      }
+      
+      // Scroll handler - throttled for performance
+      let lastScroll = 0;
+      window.addEventListener('scroll', () => {
+        const now = Date.now();
+        if (now - lastScroll > 16) { // ~60fps
+          const scrollY = window.scrollY || window.pageYOffset;
+          rotationVelocity.x += (scrollY - lastScroll) * 0.0008;
+          rotationVelocity.y += (scrollY - lastScroll) * 0.001;
+          lastScroll = now;
+        }
+      }, true);
+      
+      // Mouse handler for interactivity
+      let mouseX = 0, mouseY = 0;
+      window.addEventListener('mousemove', (e) => {
+        mouseX = (e.clientX / window.innerWidth) * 2 - 1;
+        mouseY = -(e.clientY / window.innerHeight) * 2 + 1;
+        rotationVelocity.x = mouseY * 0.01;
+        rotationVelocity.y = mouseX * 0.01;
+      });
+      
+      init3D();
+    }
   </script>
 </body>
 </html>
