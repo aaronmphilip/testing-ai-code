@@ -503,6 +503,8 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script async src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4"></script>
   <script async src="https://cdn.jsdelivr.net/npm/@tensorflow-models/handpose@0.0.7"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
 </head>
 <body>
   <nav>
@@ -596,9 +598,13 @@
         <canvas id="canvas3d"></canvas>
         <video id="handVideo" playsinline style="display: none; width: 100%; height: 100%; position: absolute; top: 0; left: 0; transform: scaleX(-1);"></video>
       </div>
-      <div style="display:flex;justify-content:center;gap:12px;align-items:center;margin-top:16px;">
+      <div style="display:flex;justify-content:center;gap:12px;align-items:center;margin-top:16px;flex-wrap:wrap;">
         <div id="handInfo" style="font-size:13px;color:var(--text-secondary);">Allow camera access to enable hand tracking</div>
-        <button id="fsBtn" class="btn-secondary" style="padding:8px 12px;font-size:13px;">Enter Fullscreen</button>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <button id="calFar" class="btn-secondary" style="padding:8px 12px;font-size:13px;">Calibrate Far</button>
+          <button id="calClose" class="btn-secondary" style="padding:8px 12px;font-size:13px;">Calibrate Close</button>
+          <button id="fsBtn" class="btn-secondary" style="padding:8px 12px;font-size:13px;">Enter Fullscreen</button>
+        </div>
       </div>
     </div>
   </section>
@@ -702,41 +708,70 @@
       async function initHandTracking() {
         try {
           handInfo.textContent = '📷 Requesting camera access...';
-          
-          // First request camera permission
+
           const stream = await navigator.mediaDevices.getUserMedia({ 
             video: { width: 640, height: 480, facingMode: 'user' },
             audio: false
           });
-          
+
           video.srcObject = stream;
-          video.onloadedmetadata = () => {
-            video.play().then(() => {
-              handInfo.textContent = '⏳ Loading hand detection model...';
-              loadHandposeModel();
-            }).catch(err => {
-              handInfo.textContent = '❌ Could not access camera';
+          video.onloadedmetadata = async () => {
+            try {
+              await video.play();
+            } catch (err) {
+              handInfo.textContent = '❌ Could not play camera stream';
               console.error('Video play error:', err);
-            });
+              return;
+            }
+
+            handInfo.textContent = '⏳ Initializing hand detection...';
+
+            // Prefer MediaPipe Hands if available; otherwise fallback to handpose
+            if (window.Hands) {
+              try {
+                const mpHands = new window.Hands({ locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}` });
+                mpHands.setOptions({ maxNumHands: 1, modelComplexity: 1, minDetectionConfidence: 0.6, minTrackingConfidence: 0.5 });
+                mpHands.onResults((results) => {
+                  predictions = [];
+                  if (results.multiHandLandmarks && results.multiHandLandmarks.length) {
+                    const lm = results.multiHandLandmarks[0].map(p => [p.x * video.videoWidth, p.y * video.videoHeight, p.z]);
+                    predictions.push({ landmarks: lm });
+                  }
+                });
+
+                const cameraMp = new window.Camera(video, {
+                  onFrame: async () => { await mpHands.send({ image: video }); },
+                  width: 640,
+                  height: 480
+                });
+                cameraMp.start();
+                tracksHands = true;
+                handInfo.textContent = '✅ MediaPipe Hands active';
+                return;
+              } catch (e) {
+                console.warn('MediaPipe init failed, falling back to handpose', e);
+              }
+            }
+
+            // Fallback: TensorFlow Handpose
+            loadHandposeModel();
           };
         } catch (e) {
           handInfo.textContent = '❌ Camera access denied. Please allow camera permission in your browser settings.';
           console.error('Camera permission error:', e);
         }
       }
-      
+
       async function loadHandposeModel() {
         try {
-          // Check if handpose is loaded
-          if (typeof handpose === 'undefined' || !window.handpose) {
+          if (typeof window.handpose === 'undefined') {
             handInfo.textContent = '⏳ Waiting for handpose library...';
             setTimeout(loadHandposeModel, 500);
             return;
           }
-          
           handpose = await window.handpose.load();
           tracksHands = true;
-          handInfo.textContent = '✅ Hand tracking active • Move hands forward/back to zoom';
+          handInfo.textContent = '✅ Handpose active (fallback)';
           detectHands();
         } catch (e) {
           handInfo.textContent = '❌ Failed to load hand detection';
@@ -744,6 +779,7 @@
         }
       }
       
+      // detectHands remains for fallback handpose usage; MediaPipe uses callback
       async function detectHands() {
         try {
           if (!handpose || !video || !tracksHands) {
@@ -752,7 +788,8 @@
           }
 
           const hands = await handpose.estimateHands(video, false);
-          predictions = hands || [];
+          // handpose returns landmarks in pixel coords as arrays
+          predictions = (hands || []).map(h => ({ landmarks: h.landmarks }));
         } catch (e) {
           console.error('Hand detection error:', e);
         }
