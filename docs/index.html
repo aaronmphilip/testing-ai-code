@@ -694,28 +694,64 @@
     if (canvas && typeof THREE !== 'undefined') {
       let scene, camera, renderer, objects = [], rotationVelocity = { x: 0, y: 0, z: 0 };
       let handpose, predictions = [], baseZoom = 75, targetZoom = 75;
+      let tracksHands = false;
       
       async function initHandTracking() {
         try {
-          handpose = await handpose_module.load();
-          handInfo.textContent = '✓ Hand tracking enabled';
+          handInfo.textContent = '📷 Requesting camera access...';
           
+          // First request camera permission
           const stream = await navigator.mediaDevices.getUserMedia({ 
-            video: { width: 640, height: 480 } 
+            video: { width: 640, height: 480, facingMode: 'user' },
+            audio: false
           });
-          video.srcObject = stream;
-          video.play();
           
+          video.srcObject = stream;
+          video.onloadedmetadata = () => {
+            video.play().then(() => {
+              handInfo.textContent = '⏳ Loading hand detection model...';
+              loadHandposeModel();
+            }).catch(err => {
+              handInfo.textContent = '❌ Could not access camera';
+              console.error('Video play error:', err);
+            });
+          };
+        } catch (e) {
+          handInfo.textContent = '❌ Camera access denied. Please allow camera permission in your browser settings.';
+          console.error('Camera permission error:', e);
+        }
+      }
+      
+      async function loadHandposeModel() {
+        try {
+          // Check if handpose is loaded
+          if (typeof handpose === 'undefined' || !window.handpose) {
+            handInfo.textContent = '⏳ Waiting for handpose library...';
+            setTimeout(loadHandposeModel, 500);
+            return;
+          }
+          
+          handpose = await window.handpose.load();
+          tracksHands = true;
+          handInfo.textContent = '✅ Hand tracking active • Move hands forward/back to zoom';
           detectHands();
         } catch (e) {
-          handInfo.textContent = 'Hand tracking unavailable (camera permission needed)';
-          console.log(e);
+          handInfo.textContent = '❌ Failed to load hand detection';
+          console.error('Handpose load error:', e);
         }
       }
       
       async function detectHands() {
-        if (!handpose || !video) return;
-        predictions = await handpose.estimateHands(video, false);
+        try {
+          if (!handpose || !video || !tracksHands) {
+            if (tracksHands) requestAnimationFrame(detectHands);
+            return;
+          }
+          
+          predictions = await handpose.estimateHands(video, false);
+        } catch (e) {
+          console.error('Hand detection error:', e);
+        }
         requestAnimationFrame(detectHands);
       }
       
@@ -798,12 +834,19 @@
           requestAnimationFrame(animate);
           
           // Update zoom based on hand distance
-          if (predictions.length > 0) {
-            const hand = predictions[0];
-            const palmPos = hand.landmarks[9]; // Palm center
-            const handDepth = palmPos[2] || 0;
-            const normalizedDepth = Math.max(0, Math.min(1, (handDepth + 0.3) / 0.6));
-            targetZoom = 45 + normalizedDepth * 100;
+          if (predictions && predictions.length > 0) {
+            try {
+              const hand = predictions[0];
+              if (hand && hand.landmarks && hand.landmarks[9]) {
+                const palmPos = hand.landmarks[9]; // Palm center
+                const handDepth = palmPos[2] || 0;
+                // Closer hand (smaller z) = zoom in; farther hand (larger z) = zoom out
+                const normalizedDepth = Math.max(0, Math.min(1, (handDepth + 0.3) / 0.6));
+                targetZoom = 45 + normalizedDepth * 100;
+              }
+            } catch (e) {
+              console.error('Hand tracking calc error:', e);
+            }
           }
           
           camera.fov += (targetZoom - camera.fov) * 0.1;
@@ -861,7 +904,8 @@
       });
       
       init3D();
-      initHandTracking();
+      // Start hand tracking initialization
+      setTimeout(initHandTracking, 1000); // Wait for libraries to load
     }
   </script>
 </body>
