@@ -5,46 +5,218 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>ForgeHub — Pricing</title>
   <style>
-    :root{--bg:#071025;--card:#0b1220;--accent:#ff4d6d;--secondary:#7c4dff;color:#e6eef8}
-    body{margin:0;font-family:Segoe UI,Roboto,Arial;background:linear-gradient(180deg,#041025 0%, #071025 100%);color:var(--accent);}
-    .container{max-width:1400px;margin:32px auto;padding:20px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:12px}
-    h1{margin:0 0 8px;color:var(--accent);font-size:36px;text-align:center}
-    .subtitle{text-align:center;color:#9fb1c8;margin-bottom:32px}
-    .pricing-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-bottom:32px}
-    .pricing-card{padding:20px;background:#071226;border-radius:10px;border:2px solid rgba(255,77,109,0.1);transition:all 0.3s ease}
-    .pricing-card:hover{border-color:var(--accent);transform:translateY(-4px);box-shadow:0 8px 24px rgba(255,77,109,0.15)}
-    .pricing-card.featured{border-color:var(--accent);box-shadow:0 0 20px rgba(255,77,109,0.3)}
-    .package-name{font-size:20px;font-weight:bold;color:var(--accent);margin-bottom:8px}
-    .package-desc{font-size:12px;color:#9fb1c8;margin-bottom:12px;min-height:32px}
-    .package-price{font-size:32px;font-weight:bold;color:var(--secondary);margin:12px 0}
-    .price-period{font-size:12px;color:#9fb1c8}
-    .features{list-style:none;padding:0;margin:16px 0;font-size:13px}
-    .features li{padding:6px 0;color:#bfe7ff;border-bottom:1px solid rgba(255,255,255,0.05)}
-    .features li:last-child{border-bottom:none}
-    .features li:before{content:"✓ ";color:var(--accent);font-weight:bold;margin-right:6px}
-    .action-button{width:100%;padding:10px;margin-top:16px;border:none;border-radius:8px;cursor:pointer;font-weight:bold;transition:all 0.3s;background:linear-gradient(90deg,#ff4d6d,#7c4dff);color:white;text-decoration:none;display:inline-block;text-align:center}
-    .action-button:hover{opacity:0.9;transform:scale(1.02)}
-    .action-button.secondary{background:rgba(124,77,255,0.2);color:var(--secondary);border:1px solid var(--secondary)}
-    .action-button.secondary:hover{background:rgba(124,77,255,0.3)}
-    .enterprise-section{margin-top:40px;padding:24px;background:rgba(124,77,255,0.1);border:2px solid var(--secondary);border-radius:12px}
-    .enterprise-title{font-size:24px;color:var(--secondary);margin-bottom:16px}
-    .seats-control{margin:16px 0}
-    .seats-label{display:block;margin-bottom:8px;color:#9fb1c8}
-    .seats-input{width:100%;padding:8px;border-radius:6px;border:1px solid rgba(124,77,255,0.3);background:rgba(0,0,0,0.2);color:var(--accent);font-size:14px}
-    .seats-display{font-size:28px;color:var(--secondary);margin:12px 0;font-weight:bold}
-    .seat-price{color:#9fb1c8;font-size:13px;margin-top:8px}
-    .back-link{display:inline-block;margin-bottom:16px;color:var(--accent);text-decoration:none;cursor:pointer}
-    .back-link:hover{text-decoration:underline}
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --accent: #ff6b6b; --secondary: #7c3aed; --text-primary: #1a1a1a;
+      --text-secondary: #666; --glass-light: rgba(255, 255, 255, 0.25);
+      --glass-medium: rgba(255, 255, 255, 0.15);
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
+      color: var(--text-primary);
+      overflow-x: hidden;
+    }
+    nav {
+      position: fixed; top: 0; width: 100%; z-index: 1000;
+      backdrop-filter: blur(20px); background: rgba(255, 255, 255, 0.7);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    }
+    .nav-container {
+      max-width: 1200px; margin: 0 auto; padding: 16px 24px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .logo {
+      font-size: 24px; font-weight: 700;
+      background: linear-gradient(135deg, #ff6b6b, #7c3aed);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .container {
+      max-width: 1200px; margin: 0 auto; padding: 120px 24px 60px;
+    }
+    h1 {
+      text-align: center; font-size: clamp(40px, 8vw, 60px); font-weight: 700;
+      margin-bottom: 16px; letter-spacing: -1px;
+    }
+    .subtitle {
+      text-align: center; font-size: 18px; color: var(--text-secondary);
+      margin-bottom: 60px; max-width: 600px; margin-left: auto; margin-right: auto;
+    }
+    .pricing-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px; margin-bottom: 80px; animation: fadeInUp 0.8s ease-out;
+    }
+    .pricing-card {
+      padding: 40px 32px; background: var(--glass-light);
+      backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 24px; transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      position: relative;
+    }
+    .pricing-card:hover {
+      transform: translateY(-12px); background: var(--glass-medium);
+      border-color: rgba(255, 107, 107, 0.3);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
+    }
+    .pricing-card.featured {
+      border-color: var(--accent); background: var(--glass-medium);
+      box-shadow: 0 0 30px rgba(255, 107, 107, 0.2);
+    }
+    .pricing-card.featured::before {
+      content: "POPULAR"; position: absolute; top: -12px; left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(135deg, var(--accent), #ff5252);
+      color: white; padding: 6px 16px; border-radius: 20px;
+      font-size: 12px; font-weight: 700; letter-spacing: 0.5px;
+    }
+    .package-name {
+      font-size: 24px; font-weight: 700; margin-bottom: 8px;
+      color: var(--text-primary);
+    }
+    .package-desc {
+      font-size: 13px; color: var(--text-secondary);
+      margin-bottom: 20px; min-height: 32px;
+    }
+    .package-price {
+      font-size: clamp(32px, 6vw, 48px); font-weight: 700;
+      background: linear-gradient(135deg, var(--accent), var(--secondary));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text; margin: 16px 0;
+    }
+    .price-period { font-size: 14px; color: var(--text-secondary); }
+    .features {
+      list-style: none; margin: 24px 0;
+    }
+    .features li {
+      padding: 10px 0; font-size: 14px; color: var(--text-secondary);
+      display: flex; align-items: center; gap: 10px;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    }
+    .features li:last-child { border-bottom: none; }
+    .features li:before {
+      content: "✓"; color: var(--accent); font-weight: 700;
+      font-size: 16px; flex-shrink: 0;
+    }
+    .action-button {
+      width: 100%; padding: 14px; margin-top: 20px; border: none;
+      border-radius: 12px; font-weight: 600; font-size: 15px;
+      cursor: pointer; transition: all 0.3s; text-decoration: none;
+      display: inline-block; text-align: center;
+      background: linear-gradient(135deg, var(--accent), #ff5252);
+      color: white;
+    }
+    .action-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 32px rgba(255, 107, 107, 0.3);
+    }
+    .action-button.secondary {
+      background: rgba(255, 107, 107, 0.1); color: var(--accent);
+      border: 1.5px solid rgba(255, 107, 107, 0.3);
+    }
+    .action-button.secondary:hover {
+      background: rgba(255, 107, 107, 0.15);
+    }
+    .enterprise-section {
+      margin-top: 100px; padding: 60px 40px; background: var(--glass-light);
+      backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 32px;
+    }
+    .enterprise-title {
+      font-size: 36px; font-weight: 700; margin-bottom: 16px;
+      background: linear-gradient(135deg, var(--accent), var(--secondary));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .enterprise-desc {
+      font-size: 16px; color: var(--text-secondary); margin-bottom: 40px;
+      line-height: 1.6;
+    }
+    .seats-control { margin: 30px 0; }
+    .seats-label {
+      display: block; font-size: 14px; font-weight: 600; margin-bottom: 12px;
+      color: var(--text-primary);
+    }
+    .seats-input {
+      width: 100%; height: 8px; border-radius: 4px;
+      background: rgba(0, 0, 0, 0.1); outline: none;
+      -webkit-appearance: none; appearance: none; cursor: pointer;
+    }
+    .seats-input::-webkit-slider-thumb {
+      -webkit-appearance: none; appearance: none; width: 24px; height: 24px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), #ff5252);
+      cursor: pointer; transition: all 0.3s;
+      box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
+    }
+    .seats-input::-moz-range-thumb {
+      width: 24px; height: 24px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), #ff5252);
+      cursor: pointer; border: none; transition: all 0.3s;
+      box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
+    }
+    .seats-display {
+      font-size: 40px; font-weight: 700;
+      background: linear-gradient(135deg, var(--accent), var(--secondary));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text; margin: 20px 0;
+    }
+    .pricing-grid-inline {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin: 40px 0;
+    }
+    .pricing-detail {
+      padding: 24px; background: rgba(255, 255, 255, 0.5);
+      border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .pricing-detail-label {
+      font-size: 13px; color: var(--text-secondary); font-weight: 600;
+      margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .pricing-detail-value {
+      font-size: 32px; font-weight: 700; color: var(--accent); margin-bottom: 8px;
+    }
+    .pricing-detail-note {
+      font-size: 13px; color: var(--text-secondary);
+    }
+    .enterprise-buttons {
+      display: flex; gap: 16px; margin-top: 40px;
+    }
+    .enterprise-buttons button {
+      flex: 1; padding: 14px; border: none; border-radius: 12px;
+      font-weight: 600; font-size: 15px; cursor: pointer;
+      transition: all 0.3s;
+    }
+    footer {
+      background: rgba(0, 0, 0, 0.02); border-top: 1px solid rgba(0, 0, 0, 0.05);
+      padding: 40px 24px; text-align: center; color: var(--text-secondary);
+      font-size: 14px; margin-top: 80px;
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @media (max-width: 768px) {
+      .pricing-grid-inline { grid-template-columns: 1fr; gap: 16px; }
+      .enterprise-buttons { flex-direction: column; }
+      .enterprise-section { padding: 32px 24px; }
+      .container { padding: 100px 16px 40px; }
+    }
   </style>
 </head>
 <body>
+  <nav>
+    <div class="nav-container">
+      <div class="logo">ForgeHub</div>
+      <div style="display:flex;gap:24px;align-items:center;">
+        <a href="index.html" style="color:var(--text-primary);text-decoration:none;font-size:14px;font-weight:500;">Back to Home</a>
+      </div>
+    </div>
+  </nav>
+
   <div class="container">
-    <a onclick="history.back()" class="back-link">← Back to ForgeHub</a>
-    <h1>ForgeHub Pricing Plans</h1>
-    <div class="subtitle">Choose the perfect plan for your development needs. All plans include 24/7 support.</div>
+    <h1>Simple, Transparent Pricing</h1>
+    <p class="subtitle">Choose the perfect plan for your needs. All plans include 24/7 support and a 14-day free trial.</p>
 
     <div class="pricing-grid">
-      <!-- Package 1: Starter -->
       <div class="pricing-card">
         <div class="package-name">Starter</div>
         <div class="package-desc">Perfect for beginners</div>
@@ -59,7 +231,6 @@
         <a href="https://www.youtube.com" target="_blank" class="action-button">Get Started</a>
       </div>
 
-      <!-- Package 2: Growth -->
       <div class="pricing-card">
         <div class="package-name">Growth</div>
         <div class="package-desc">For growing teams</div>
@@ -74,7 +245,6 @@
         <a href="https://www.google.com" target="_blank" class="action-button">Get Started</a>
       </div>
 
-      <!-- Package 3: Professional -->
       <div class="pricing-card featured">
         <div class="package-name">Professional</div>
         <div class="package-desc">Most popular option</div>
@@ -84,12 +254,11 @@
           <li>100 Collaborators</li>
           <li>500 GB Storage</li>
           <li>Real-time Analytics</li>
-          <li>24/7 Support</li>
+          <li>24/7 VIP Support</li>
         </ul>
         <a href="https://www.youtube.com" target="_blank" class="action-button">Get Started</a>
       </div>
 
-      <!-- Package 4: Business -->
       <div class="pricing-card">
         <div class="package-name">Business</div>
         <div class="package-desc">For scaling companies</div>
@@ -104,7 +273,6 @@
         <a href="https://www.google.com" target="_blank" class="action-button">Get Started</a>
       </div>
 
-      <!-- Package 5: Developer Pro -->
       <div class="pricing-card">
         <div class="package-name">Developer Pro</div>
         <div class="package-desc">Code at scale</div>
@@ -119,7 +287,6 @@
         <a href="https://www.youtube.com" target="_blank" class="action-button">Get Started</a>
       </div>
 
-      <!-- Package 6: Team Starter -->
       <div class="pricing-card">
         <div class="package-name">Team Starter</div>
         <div class="package-desc">Small teams unite</div>
@@ -134,7 +301,6 @@
         <a href="https://www.google.com" target="_blank" class="action-button">Get Started</a>
       </div>
 
-      <!-- Package 7: Agency -->
       <div class="pricing-card">
         <div class="package-name">Agency</div>
         <div class="package-desc">Multi-project power</div>
@@ -149,7 +315,6 @@
         <a href="https://www.youtube.com" target="_blank" class="action-button">Get Started</a>
       </div>
 
-      <!-- Package 8: Startup -->
       <div class="pricing-card">
         <div class="package-name">Startup</div>
         <div class="package-desc">Launch your vision</div>
@@ -164,7 +329,6 @@
         <a href="https://www.google.com" target="_blank" class="action-button">Get Started</a>
       </div>
 
-      <!-- Package 9: Studio -->
       <div class="pricing-card">
         <div class="package-name">Studio</div>
         <div class="package-desc">Creative collaboration</div>
@@ -179,7 +343,6 @@
         <a href="https://www.youtube.com" target="_blank" class="action-button">Get Started</a>
       </div>
 
-      <!-- Package 10: Enterprise Plus -->
       <div class="pricing-card featured">
         <div class="package-name">Enterprise Plus</div>
         <div class="package-desc">Ultimate flexibility</div>
@@ -195,44 +358,42 @@
       </div>
     </div>
 
-    <!-- Enterprise Section with Seat Slider -->
     <div class="enterprise-section">
-      <div class="enterprise-title">Enterprise Plan - Customize Your Seats</div>
-      <p style="color:#9fb1c8;margin-bottom:16px">Enterprise plans scale with your team. Adjust the number of seats below to see your custom pricing.</p>
-      
+      <h2 class="enterprise-title">Enterprise Plan</h2>
+      <p class="enterprise-desc">Customize your plan with the exact number of seats your team needs. Get bulk discounts automatically applied.</p>
+
       <div class="seats-control">
-        <label class="seats-label">Number of Seats:</label>
-        <input type="range" id="seatsSlider" class="seats-input" min="1" max="500" value="10" style="height:6px;cursor:pointer">
+        <label class="seats-label">Number of Seats</label>
+        <input type="range" id="seatsSlider" class="seats-input" min="1" max="500" value="10">
       </div>
 
       <div class="seats-display">
         <span id="seatsDisplay">10</span> Seats
       </div>
 
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px">
-        <div>
-          <div style="color:#9fb1c8;font-size:12px">Price per Seat (Annual)</div>
-          <div style="font-size:24px;color:var(--secondary);font-weight:bold">$<span id="pricePerSeat">599</span></div>
-          <div class="seat-price">Bulk discounts applied automatically</div>
+      <div class="pricing-grid-inline">
+        <div class="pricing-detail">
+          <div class="pricing-detail-label">Price per Seat (Annual)</div>
+          <div class="pricing-detail-value">$<span id="pricePerSeat">599</span></div>
+          <div class="pricing-detail-note">Bulk discounts applied automatically</div>
         </div>
-        <div>
-          <div style="color:#9fb1c8;font-size:12px">Total Annual Cost</div>
-          <div style="font-size:24px;color:var(--secondary);font-weight:bold">$<span id="totalCost">5990</span></div>
-          <div class="seat-price">Billed annually, save 20%</div>
+        <div class="pricing-detail">
+          <div class="pricing-detail-label">Total Annual Cost</div>
+          <div class="pricing-detail-value">$<span id="totalCost">5990</span></div>
+          <div class="pricing-detail-note">Billed annually, save 20%</div>
         </div>
       </div>
 
-      <div style="margin-top:20px;display:flex;gap:12px">
-        <a href="https://www.youtube.com" target="_blank" class="action-button" style="flex:1">Schedule Demo</a>
-        <a href="https://www.google.com" target="_blank" class="action-button secondary" style="flex:1">Request Quote</a>
+      <div class="enterprise-buttons">
+        <a href="https://www.youtube.com" target="_blank" class="action-button" style="margin-top:0;">Schedule Demo</a>
+        <a href="https://www.google.com" target="_blank" class="action-button secondary" style="margin-top:0;">Request Quote</a>
       </div>
-    </div>
-
-    <div style="margin-top:40px;text-align:center;color:#9fb1c8">
-      <p>All plans come with a 14-day free trial. No credit card required.</p>
-      <p style="font-size:12px">Questions? <a href="https://www.youtube.com" target="_blank" style="color:var(--accent);text-decoration:none">Contact our sales team</a></p>
     </div>
   </div>
+
+  <footer>
+    <p>© 2026 ForgeHub. All rights reserved. Made with ❤️ for developers.</p>
+  </footer>
 
   <script>
     const seatsSlider = document.getElementById('seatsSlider');
@@ -243,12 +404,9 @@
     function calculatePrice(seats) {
       let basePrice = 599;
       let discount = 0;
-
-      // Bulk discount tiers
-      if (seats >= 100) discount = 0.30; // 30% off
-      else if (seats >= 50) discount = 0.20;  // 20% off
-      else if (seats >= 20) discount = 0.10;  // 10% off
-
+      if (seats >= 100) discount = 0.30;
+      else if (seats >= 50) discount = 0.20;
+      else if (seats >= 20) discount = 0.10;
       const finalPrice = Math.round(basePrice * (1 - discount));
       return { finalPrice, totalAnnual: finalPrice * seats };
     }
@@ -256,13 +414,11 @@
     seatsSlider.addEventListener('input', function() {
       const seats = parseInt(this.value);
       const { finalPrice, totalAnnual } = calculatePrice(seats);
-
       seatsDisplay.textContent = seats;
       pricePerSeat.textContent = finalPrice;
       totalCost.textContent = totalAnnual.toLocaleString();
     });
 
-    // Initialize
     const { finalPrice, totalAnnual } = calculatePrice(10);
     pricePerSeat.textContent = finalPrice;
     totalCost.textContent = totalAnnual.toLocaleString();

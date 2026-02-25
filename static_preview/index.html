@@ -3,81 +3,581 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>ForgeHub — Static Preview (No Node)</title>
+  <title>ForgeHub — Repository Management Reimagined</title>
   <style>
-    :root{--bg:#071025;--card:#0b1220;--accent:#ff4d6d;color:#e6eef8}
-    body{margin:0;font-family:Segoe UI,Roboto,Arial;background:linear-gradient(180deg,#041025 0%, #071025 100%);color:var(--accent);}
-    .container{max-width:1000px;margin:32px auto;padding:20px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:12px}
-    h1{margin:0 0 8px;color:linear-gradient(90deg,#ff4d6d,#7c4dff);color:var(--accent);font-size:32px}
-    .muted{color:#9fb1c8;font-size:13px}
-    .controls{display:flex;gap:12px;margin-top:16px}
-    input,button,select{padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit}
-    button{cursor:pointer;background:linear-gradient(90deg,#ff4d6d,#7c4dff);color:white;border:none}
-    .cards{display:flex;gap:12px;margin-top:18px}
-    .card{flex:1;padding:12px;background:#071226;border-radius:10px}
-    ul{list-style:none;padding:0;margin:0}
-    li.repo{padding:8px;border-radius:8px;margin-bottom:8px;background:rgba(255,255,255,0.01);cursor:pointer}
-    .file{font-family:monospace;color:#bfe7ff;background:rgba(0,0,0,0.12);padding:6px;border-radius:6px;display:inline-block}
-    .footer{margin-top:18px;color:#9fb1c8}
-    .topbar{display:flex;justify-content:space-between;align-items:center}
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --accent: #ff6b6b;
+      --secondary: #7c3aed;
+      --text-primary: #1a1a1a;
+      --text-secondary: #666;
+      --bg-primary: #ffffff;
+      --bg-secondary: rgba(255, 255, 255, 0.7);
+      --glass-light: rgba(255, 255, 255, 0.25);
+      --glass-medium: rgba(255, 255, 255, 0.15);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
+      color: var(--text-primary);
+      overflow-x: hidden;
+    }
+
+    nav {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      z-index: 1000;
+      backdrop-filter: blur(20px);
+      background: rgba(255, 255, 255, 0.7);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .nav-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 16px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      font-size: 24px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #ff6b6b, #7c3aed);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -0.5px;
+    }
+
+    .nav-right {
+      display: flex;
+      gap: 24px;
+      align-items: center;
+    }
+
+    .nav-link {
+      color: var(--text-primary);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      position: relative;
+    }
+
+    .nav-link:hover {
+      color: var(--accent);
+    }
+
+    .nav-link.active::after {
+      content: '';
+      position: absolute;
+      bottom: -8px;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background: var(--accent);
+      border-radius: 1px;
+    }
+
+    .btn-signin {
+      padding: 8px 16px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 14px;
+    }
+
+    .btn-signin:hover {
+      background: #ff5252;
+      transform: translateY(-1px);
+      box-shadow: 0 8px 24px rgba(255, 107, 107, 0.3);
+    }
+
+    .hero {
+      margin-top: 80px;
+      min-height: calc(100vh - 80px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 60px 24px;
+      text-align: center;
+    }
+
+    .hero-content {
+      max-width: 800px;
+      animation: fadeInUp 0.8s ease-out;
+    }
+
+    .hero h1 {
+      font-size: clamp(36px, 8vw, 72px);
+      font-weight: 700;
+      line-height: 1.1;
+      margin-bottom: 24px;
+      letter-spacing: -1px;
+      background: linear-gradient(135deg, var(--text-primary), var(--secondary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero p {
+      font-size: clamp(16px, 3vw, 20px);
+      color: var(--text-secondary);
+      margin-bottom: 40px;
+      line-height: 1.6;
+      font-weight: 400;
+    }
+
+    .hero-buttons {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 60px;
+    }
+
+    .btn-primary, .btn-secondary {
+      padding: 14px 28px;
+      font-size: 16px;
+      font-weight: 600;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), #ff5252);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 32px rgba(255, 107, 107, 0.4);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 107, 107, 0.1);
+      color: var(--accent);
+      border: 1.5px solid rgba(255, 107, 107, 0.3);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 107, 107, 0.15);
+      border-color: rgba(255, 107, 107, 0.5);
+    }
+
+    .features {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 100px 24px;
+    }
+
+    .section-title {
+      text-align: center;
+      font-size: clamp(28px, 6vw, 48px);
+      font-weight: 700;
+      margin-bottom: 60px;
+      letter-spacing: -0.5px;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px;
+      margin-bottom: 80px;
+    }
+
+    .feature-card {
+      padding: 40px 32px;
+      background: var(--glass-light);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 20px;
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      cursor: pointer;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-12px);
+      background: var(--glass-medium);
+      border-color: rgba(255, 107, 107, 0.3);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    }
+
+    .feature-icon {
+      font-size: 40px;
+      margin-bottom: 16px;
+    }
+
+    .feature-card h3 {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: var(--text-primary);
+    }
+
+    .feature-card p {
+      font-size: 15px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    .app-section {
+      background: linear-gradient(135deg, rgba(255, 107, 107, 0.1), rgba(124, 58, 237, 0.1));
+      padding: 100px 24px;
+      margin: 40px 0;
+      border-radius: 32px;
+      max-width: 1200px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .app-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: center;
+    }
+
+    .app-content h2 {
+      font-size: clamp(32px, 5vw, 44px);
+      font-weight: 700;
+      margin-bottom: 24px;
+      letter-spacing: -0.5px;
+    }
+
+    .app-features {
+      list-style: none;
+      margin-bottom: 32px;
+    }
+
+    .app-features li {
+      padding: 12px 0;
+      font-size: 16px;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .app-features li:before {
+      content: "✓";
+      color: var(--accent);
+      font-weight: 700;
+      font-size: 18px;
+    }
+
+    .app-preview {
+      background: var(--glass-light);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 20px;
+      padding: 32px;
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    .form-section {
+      max-width: 800px;
+      margin: 100px auto;
+      padding: 60px 40px;
+      background: var(--glass-light);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 24px;
+    }
+
+    .form-section h2 {
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 32px;
+      text-align: center;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--text-primary);
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 12px 16px;
+      background: rgba(255, 255, 255, 0.5);
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      border-radius: 12px;
+      font-size: 16px;
+      color: var(--text-primary);
+      transition: all 0.3s ease;
+      font-family: inherit;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      background: rgba(255, 255, 255, 0.8);
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.1);
+    }
+
+    #modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(10px);
+      z-index: 2000;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 0.3s ease;
+    }
+
+    #modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: var(--bg-primary);
+      padding: 48px;
+      border-radius: 28px;
+      max-width: 420px;
+      width: 90%;
+      box-shadow: 0 40px 80px rgba(0, 0, 0, 0.15);
+      animation: slideUp 0.3s ease;
+    }
+
+    .modal-content h3 {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 24px;
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    .modal-buttons button {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    footer {
+      background: rgba(0, 0, 0, 0.02);
+      border-top: 1px solid rgba(0, 0, 0, 0.05);
+      padding: 40px 24px;
+      text-align: center;
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .app-grid {
+        grid-template-columns: 1fr;
+        gap: 40px;
+      }
+
+      .app-preview {
+        aspect-ratio: auto;
+        min-height: 300px;
+      }
+
+      .nav-container {
+        flex-wrap: wrap;
+      }
+
+      .nav-right {
+        gap: 12px;
+      }
+
+      .form-section {
+        padding: 32px 24px;
+      }
+    }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="topbar">
-      <div>
-        <h1>ForgeHub (Static Preview)</h1>
-        <div class="muted">No Node required — this simulates the app entirely in your browser.</div>
-      </div>
-      <div>
-        <span id="userLabel" class="muted">Not signed in</span>
-        <a href="pricing.html" style="margin-right:12px;color:var(--accent);text-decoration:none">Pricing</a>
-        <button id="signinBtn">Sign In</button>
+  <nav>
+    <div class="nav-container">
+      <div class="logo">ForgeHub</div>
+      <div class="nav-right">
+        <a href="#" class="nav-link">Features</a>
+        <a href="pricing.html" class="nav-link">Pricing</a>
+        <span id="userLabel" style="font-size: 13px; color: var(--text-secondary);">Not signed in</span>
+        <button id="signinBtn" class="btn-signin">Sign In</button>
       </div>
     </div>
+  </nav>
 
-    <div class="controls">
-      <div style="flex:1" class="card">
-        <h3 style="margin-top:0;color:var(--accent)">Create repo (simulated)</h3>
-        <input id="repoName" placeholder="repo name" />
-        <input id="repoDesc" placeholder="description" />
-        <button id="createRepo">Create Repo</button>
-      </div>
-
-      <div style="width:320px" class="card">
-        <h3 style="margin-top:0;color:var(--accent)">Repos</h3>
-        <ul id="repoList"></ul>
+  <section class="hero">
+    <div class="hero-content">
+      <h1>Repository Management Reimagined</h1>
+      <p>Create, manage, and collaborate on repositories with beautiful simplicity. ForgeHub brings Apple's design philosophy to code.</p>
+      <div class="hero-buttons">
+        <button class="btn-primary" onclick="alert('Welcome to ForgeHub!')">Get Started</button>
+        <a href="pricing.html" class="btn-secondary">View Plans</a>
       </div>
     </div>
+  </section>
 
-    <div class="cards">
-      <div class="card" style="flex:1">
-        <h4 style="color:var(--accent)">Selected Repo</h4>
-        <div id="selectedRepo">No repo selected</div>
-      </div>  
-      <div class="card" style="flex:1">
-        <h4 style="color:var(--accent)">Issues</h4>
-        <ul id="issueList"></ul>
-        <input id="issueTitle" placeholder="Issue title" />
-        <button id="createIssue">Create Issue</button>
-      </div>  
+  <section class="features">
+    <h2 class="section-title">Powerful Features</h2>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">💾</div>
+        <h3>Cloud Sync</h3>
+        <p>Your repositories sync seamlessly across all devices. Access your code anywhere, anytime.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">👥</div>
+        <h3>Collaboration</h3>
+        <p>Invite team members and work together in real-time with intuitive collaboration tools.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔒</div>
+        <h3>Security First</h3>
+        <p>Enterprise-grade encryption and security measures to protect your valuable code.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">⚡</div>
+        <h3>Lightning Fast</h3>
+        <p>Optimized performance with CDN delivery for instant loading speeds worldwide.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📊</div>
+        <h3>Analytics</h3>
+        <p>Comprehensive analytics and insights into your project activity and growth.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔧</div>
+        <h3>Developer API</h3>
+        <p>Flexible REST API for integrating ForgeHub into your existing workflow.</p>
+      </div>
     </div>
+  </section>
 
-    <div class="footer">This preview stores data in your browser `localStorage` so you can refresh or close and return.</div>
+  <section class="app-section">
+    <div class="app-grid">
+      <div class="app-content">
+        <h2>Everything You Need</h2>
+        <ul class="app-features">
+          <li>Create unlimited repositories</li>
+          <li>Invite unlimited collaborators</li>
+          <li>Real-time sync & backup</li>
+          <li>Advanced permission controls</li>
+          <li>CI/CD integration</li>
+          <li>24/7 priority support</li>
+        </ul>
+        <button class="btn-primary">Explore More →</button>
+      </div>
+      <div class="app-preview">
+        <div id="selectedRepo" style="text-align: center;">
+          <div style="font-size: 48px; margin-bottom: 16px;">📦</div>
+          <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 8px;">demo-repo</div>
+          <div style="font-size: 12px; color: var(--text-secondary);">A demo repository</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="form-section">
+    <h2>Create Your First Repository</h2>
+    <div class="form-group">
+      <label>Repository Name</label>
+      <input id="repoName" type="text" placeholder="my-awesome-project" />
+    </div>
+    <div class="form-group">
+      <label>Description</label>
+      <input id="repoDesc" type="text" placeholder="What's this repository about?" />
+    </div>
+    <button class="btn-primary" id="createRepo" style="width: 100%; padding: 14px; margin-top: 16px;">Create Repository</button>
+  </section>
+
+  <div id="modal">
+    <div class="modal-content">
+      <h3>Sign In</h3>
+      <div class="form-group">
+        <label>Username</label>
+        <input id="username" type="text" placeholder="Enter your username" />
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input id="password" type="password" placeholder="Enter your password" />
+      </div>
+      <div class="modal-buttons">
+        <button onclick="document.getElementById('modal').classList.remove('active')" style="background: rgba(0,0,0,0.05); color: var(--text-primary);">Cancel</button>
+        <button id="doSignIn" style="background: var(--accent); color: white;">Sign In</button>
+      </div>
+    </div>
   </div>
 
-  <!-- Sign-in modal -->
-  <div id="modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);align-items:center;justify-content:center">
-    <div style="background:#071226;padding:18px;border-radius:10px;min-width:320px;color:#e6eef8">
-      <h3>Sign In (simulated)</h3>
-      <input id="username" placeholder="username" style="width:100%;margin-bottom:8px" />
-      <input id="password" placeholder="password" type="password" style="width:100%;margin-bottom:8px" />
-      <div style="text-align:right"><button id="doSignIn">Sign In</button></div>
-    </div>
-  </div>
+  <footer>
+    <p>© 2026 ForgeHub. All rights reserved. Made with ❤️ for developers.</p>
+  </footer>
 
   <script>
-    // Simple client-side data store using localStorage
     const LS_KEY = 'forgehub_preview_v1';
     function load(){
       const raw = localStorage.getItem(LS_KEY);
@@ -87,73 +587,46 @@
     function save(db){ localStorage.setItem(LS_KEY, JSON.stringify(db)); }
 
     let db = load();
-    // seed data if empty
     if (db.repos.length === 0){
-      db.repos.push({ id: 'r1', name: 'demo-repo', description: 'A demo repo', owner: 'alice', files: [{path:'README.md', content:'# demo'}], createdAt: new Date().toISOString() });
+      db.repos.push({ id: 'r1', name: 'demo-repo', description: 'A demo repository', owner: 'alice', files: [{path:'README.md', content:'# demo'}], createdAt: new Date().toISOString() });
       save(db);
     }
 
     let currentUser = JSON.parse(localStorage.getItem('forgehub_user') || 'null');
-    let selectedRepo = null;
-
-    const repoListEl = document.getElementById('repoList');
-    const selectedRepoEl = document.getElementById('selectedRepo');
-    const issueListEl = document.getElementById('issueList');
     const userLabel = document.getElementById('userLabel');
-
-    function renderRepos(){
-      repoListEl.innerHTML = '';
-      db.repos.forEach(r=>{
-        const li = document.createElement('li'); li.className='repo'; li.textContent = r.name + ' — ' + (r.description||'');
-        li.onclick = ()=>{ selectedRepo = r; renderSelected(); }
-        repoListEl.appendChild(li);
-      })
-    }
-    function renderSelected(){
-      if (!selectedRepo){ selectedRepoEl.textContent = 'No repo selected'; issueListEl.innerHTML=''; return }
-      selectedRepoEl.innerHTML = `<div style="margin-bottom:8px"><strong style="color:#bfe7ff">${selectedRepo.name}</strong><div class="muted">${selectedRepo.description||''}</div></div>`;
-      const files = selectedRepo.files.map(f=>`<div class="file">${f.path}</div>`).join(' ');
-      selectedRepoEl.innerHTML += `<div style="margin-top:12px">Files: ${files}</div>`;
-      // render issues
-      const issues = db.issues.filter(i=>i.repoId===selectedRepo.id);
-      issueListEl.innerHTML = '';
-      issues.forEach(i=>{ const li = document.createElement('li'); li.innerHTML = `<strong style="color:#ffd1ea">${i.title}</strong><div class="muted">${i.createdAt}</div>`; issueListEl.appendChild(li); });
-    }
+    const modal = document.getElementById('modal');
 
     document.getElementById('createRepo').onclick = ()=>{
       const name = document.getElementById('repoName').value.trim();
       const desc = document.getElementById('repoDesc').value.trim();
-      if (!name) return alert('name required');
+      if (!name) return alert('Repository name required');
       const id = 'r'+Date.now();
       const owner = currentUser?currentUser.username:'guest';
       const repo = { id, name, description: desc, owner, files:[{path:'README.md',content:'# '+name}], createdAt: new Date().toISOString() };
-      db.repos.unshift(repo); save(db); renderRepos(); document.getElementById('repoName').value=''; document.getElementById('repoDesc').value='';
+      db.repos.unshift(repo);
+      save(db);
+      document.getElementById('repoName').value='';
+      document.getElementById('repoDesc').value='';
+      alert('Repository created successfully! 🎉');
     }
 
-    document.getElementById('createIssue').onclick = ()=>{
-      if (!selectedRepo) return alert('select a repo');
-      const title = document.getElementById('issueTitle').value.trim(); if (!title) return alert('title required');
-      const issue = { id:'i'+Date.now(), repoId:selectedRepo.id, title, createdAt:new Date().toISOString(), author: currentUser?currentUser.username:'guest' };
-      db.issues.unshift(issue); save(db); document.getElementById('issueTitle').value=''; renderSelected();
-    }
-
-    // Sign-in flow (simulated)
-    const modal = document.getElementById('modal');
-    document.getElementById('signinBtn').onclick = ()=>{ modal.style.display='flex' }
+    document.getElementById('signinBtn').onclick = ()=>{ modal.classList.add('active'); }
     document.getElementById('doSignIn').onclick = ()=>{
       const u = document.getElementById('username').value.trim();
       const p = document.getElementById('password').value;
-      if (!u || !p) return alert('enter username+password');
-      // store in local db
+      if (!u || !p) return alert('Username and password required');
       if (!db.users.find(x=>x.username===u)) { db.users.push({ username:u, password:p }); save(db); }
       currentUser = { username: u };
       localStorage.setItem('forgehub_user', JSON.stringify(currentUser));
-      modal.style.display='none'; updateUserLabel();
+      modal.classList.remove('active');
+      updateUserLabel();
     }
-    function updateUserLabel(){ userLabel.textContent = currentUser?('Signed in: '+currentUser.username):'Not signed in'; }
 
-    // initial render
-    updateUserLabel(); renderRepos(); renderSelected();
+    function updateUserLabel(){ 
+      userLabel.textContent = currentUser ? ('Signed in: '+currentUser.username) : 'Not signed in'; 
+    }
+
+    updateUserLabel();
   </script>
 </body>
 </html>
