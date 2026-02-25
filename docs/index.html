@@ -681,6 +681,16 @@
       <div class="timezone-info">
         <p id="tzName" style="font-size: 14px; color: var(--text-secondary); margin-bottom: 12px;">Your Timezone: Loading...</p>
       </div>
+      <div style="background: rgba(255,255,255,0.08); backdrop-filter: blur(10px); border-radius: 12px; padding: 16px; margin-bottom: 24px; border: 1px solid rgba(255,255,255,0.15);">
+        <p style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-secondary); margin-bottom: 12px; font-weight: 600;">Set Target Time</p>
+        <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+          <input id="targetHours" type="number" min="0" max="23" placeholder="HH" style="width: 50px; padding: 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.05); color: var(--text-primary); font-size: 14px; text-align: center;" />
+          <span style="color: var(--text-secondary);">:</span>
+          <input id="targetMinutes" type="number" min="0" max="59" placeholder="MM" style="width: 50px; padding: 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.05); color: var(--text-primary); font-size: 14px; text-align: center;" />
+          <button id="saveTimeBtn" style="margin-left: 8px; padding: 8px 16px; background: var(--accent); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; transition: opacity 0.2s;">Save Time</button>
+          <span id="timeSavedMsg" style="font-size: 12px; color: #4ade80; opacity: 0; transition: opacity 0.3s; margin-left: 8px;">✓ Saved</span>
+        </div>
+      </div>
       <div class="countdown-display">
         <div class="countdown-unit">
           <span id="hours" class="countdown-digit">00</span>
@@ -699,7 +709,7 @@
       </div>
       <div id="midnight-message" style="display: none; text-align: center; margin-top: 20px;">
         <p style="font-size: 24px; font-weight: 700; color: var(--accent); margin-bottom: 10px;">🔥 The Sikh Got Mad! 🔥</p>
-        <p style="font-size: 14px; color: var(--text-secondary);">11:19 PM - Celebration Time!</p>
+        <p id="celebrationTime" style="font-size: 14px; color: var(--text-secondary);">Celebration Time!</p>
       </div>
     </div>
     <canvas id="popperCanvas" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; display: none;"></canvas>
@@ -804,21 +814,62 @@
     // Set timezone once on load
     document.getElementById('tzName').textContent = 'Your Timezone: ' + getTimezonefast();
 
+    // Initialize time input fields with saved values
+    function initTimeInputs() {
+      const target = getTargetTime();
+      document.getElementById('targetHours').value = target.hours;
+      document.getElementById('targetMinutes').value = target.minutes;
+    }
+
+    // Save time button handler
+    document.getElementById('saveTimeBtn').addEventListener('click', function() {
+      const hours = parseInt(document.getElementById('targetHours').value) || 23;
+      const minutes = parseInt(document.getElementById('targetMinutes').value) || 21;
+      
+      if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
+        alert('Please enter valid hours (0-23) and minutes (0-59)');
+        return;
+      }
+
+      saveTargetTime(hours, minutes);
+      document.getElementById('timeSavedMsg').style.opacity = '1';
+      setTimeout(() => {
+        document.getElementById('timeSavedMsg').style.opacity = '0';
+      }, 2000);
+    });
+
+    // Initialize inputs on page load
+    initTimeInputs();
+
+    function getTargetTime() {
+      const saved = localStorage.getItem('countdownTarget');
+      if (saved) {
+        const [h, m] = saved.split(':').map(Number);
+        return { hours: h, minutes: m };
+      }
+      return { hours: 23, minutes: 21 }; // Default to 11:21 PM
+    }
+
+    function saveTargetTime(hours, minutes) {
+      localStorage.setItem('countdownTarget', `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`);
+    }
+
     function updateCountdown() {
       const now = new Date();
+      const target = getTargetTime();
 
-      const target = new Date(now);
-      target.setHours(23, 19, 0, 0); // Today at 11:19 PM
-      let timeLeft = target - now;
+      const countdownTarget = new Date(now);
+      countdownTarget.setHours(target.hours, target.minutes, 0, 0); // Set to saved target time
+      let timeLeft = countdownTarget - now;
 
-      // If 11:19 PM has already passed, count to tomorrow's 11:19 PM
+      // If target time has already passed, count to tomorrow's target time
       if (timeLeft <= 0) {
-        target.setDate(target.getDate() + 1);
-        timeLeft = target - now;
+        countdownTarget.setDate(countdownTarget.getDate() + 1);
+        timeLeft = countdownTarget - now;
       }
 
       if (timeLeft <= 1000) {
-        // It's 11:19 PM or within 1 second
+        // Within 1 second of target time
         document.getElementById('hours').textContent = '00';
         document.getElementById('minutes').textContent = '00';
         document.getElementById('seconds').textContent = '00';
