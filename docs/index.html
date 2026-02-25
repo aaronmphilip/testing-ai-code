@@ -501,6 +501,8 @@
     }
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script async src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4"></script>
+  <script async src="https://cdn.jsdelivr.net/npm/@tensorflow-models/handpose@0.0.7"></script>
 </head>
 <body>
   <nav>
@@ -587,10 +589,14 @@
   </section>
 
   <section class="section-3d">
-    <h2 class="section-title">Interactive Experience</h2>
-    <p class="section-subtitle">Scroll to interact with our 3D model — drag your mouse or scroll to control the rotation</p>
-    <div class="canvas-wrapper">
-      <canvas id="canvas3d"></canvas>
+    <h2 class="section-title">Interactive 3D Experience</h2>
+    <p class="section-subtitle">Move your hand forward/backward to zoom • Scroll & mouse to rotate</p>
+    <div style="position: relative; max-width: 1000px; margin: 0 auto;">
+      <div class="canvas-wrapper">
+        <canvas id="canvas3d"></canvas>
+        <video id="handVideo" playsinline style="display: none; width: 100%; height: 100%; position: absolute; top: 0; left: 0; transform: scaleX(-1);"></video>
+      </div>
+      <div id="handInfo" style="text-align: center; margin-top: 16px; font-size: 13px; color: var(--text-secondary);">Allow camera access to enable hand tracking</div>
     </div>
   </section>
 
@@ -680,68 +686,154 @@
 
     updateUserLabel();
 
-    // ===== 3D Scene with Scroll Physics =====
+    // ===== 3D Scene with Hand Tracking & Physics =====
     let canvas = document.getElementById('canvas3d');
+    let video = document.getElementById('handVideo');
+    let handInfo = document.getElementById('handInfo');
+    
     if (canvas && typeof THREE !== 'undefined') {
-      let scene, camera, renderer, cube, rotationVelocity = { x: 0, y: 0, z: 0 };
+      let scene, camera, renderer, objects = [], rotationVelocity = { x: 0, y: 0, z: 0 };
+      let handpose, predictions = [], baseZoom = 75, targetZoom = 75;
+      
+      async function initHandTracking() {
+        try {
+          handpose = await handpose_module.load();
+          handInfo.textContent = '✓ Hand tracking enabled';
+          
+          const stream = await navigator.mediaDevices.getUserMedia({ 
+            video: { width: 640, height: 480 } 
+          });
+          video.srcObject = stream;
+          video.play();
+          
+          detectHands();
+        } catch (e) {
+          handInfo.textContent = 'Hand tracking unavailable (camera permission needed)';
+          console.log(e);
+        }
+      }
+      
+      async function detectHands() {
+        if (!handpose || !video) return;
+        predictions = await handpose.estimateHands(video, false);
+        requestAnimationFrame(detectHands);
+      }
       
       function init3D() {
         const width = canvas.parentElement.clientWidth;
         const height = canvas.parentElement.clientHeight;
         
         scene = new THREE.Scene();
-        camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
-        renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+        scene.background = new THREE.Color(0x07070f);
+        camera = new THREE.PerspectiveCamera(baseZoom, width / height, 0.1, 1000);
+        renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
         renderer.setSize(width, height);
-        renderer.setClearColor(0x000000, 0);
+        renderer.shadowMap.enabled = true;
         
-        camera.position.z = 3;
+        camera.position.z = 5;
         
-        // Create geometry with gradient material
-        const geometry = new THREE.BoxGeometry(1.5, 1.5, 1.5);
+        // Create main rotating cube
+        const geometry = new THREE.BoxGeometry(1.2, 1.2, 1.2);
         const materials = [
-          new THREE.MeshPhongMaterial({ color: 0xff6b6b }),
-          new THREE.MeshPhongMaterial({ color: 0x7c3aed }),
-          new THREE.MeshPhongMaterial({ color: 0x00d4ff }),
-          new THREE.MeshPhongMaterial({ color: 0xff6b6b }),
-          new THREE.MeshPhongMaterial({ color: 0xffd700 }),
-          new THREE.MeshPhongMaterial({ color: 0x7c3aed })
+          new THREE.MeshPhongMaterial({ color: 0xff6b6b, shininess: 100 }),
+          new THREE.MeshPhongMaterial({ color: 0x7c3aed, shininess: 100 }),
+          new THREE.MeshPhongMaterial({ color: 0x00d4ff, shininess: 100 }),
+          new THREE.MeshPhongMaterial({ color: 0xffd700, shininess: 100 }),
+          new THREE.MeshPhongMaterial({ color: 0xff1493, shininess: 100 }),
+          new THREE.MeshPhongMaterial({ color: 0x00ff88, shininess: 100 })
         ];
-        cube = new THREE.Mesh(geometry, materials);
+        const cube = new THREE.Mesh(geometry, materials);
+        cube.castShadow = true;
+        cube.receiveShadow = true;
         scene.add(cube);
+        objects.push({ mesh: cube, rotSpeed: { x: 0.02, y: 0.03 } });
         
-        // Add lighting
-        const light1 = new THREE.DirectionalLight(0xffffff, 1);
-        light1.position.set(5, 5, 5);
+        // Add floating orbs
+        for (let i = 0; i < 4; i++) {
+          const orbGeo = new THREE.IcosahedronGeometry(0.3, 8);
+          const orbMat = new THREE.MeshPhongMaterial({ 
+            color: [0xff6b6b, 0x7c3aed, 0x00d4ff, 0xffd700][i],
+            wireframe: false,
+            emissive: [0xff6b6b, 0x7c3aed, 0x00d4ff, 0xffd700][i],
+            emissiveIntensity: 0.3
+          });
+          const orb = new THREE.Mesh(orbGeo, orbMat);
+          orb.castShadow = true;
+          orb.receiveShadow = true;
+          orb.position.set(
+            Math.cos(i * Math.PI / 2) * 2,
+            Math.sin(i * Math.PI / 2) * 2,
+            0
+          );
+          scene.add(orb);
+          objects.push({ 
+            mesh: orb, 
+            rotSpeed: { x: 0.01, y: 0.02, z: 0.015 },
+            basePos: orb.position.clone(),
+            offset: i
+          });
+        }
+        
+        // Enhanced lighting
+        const light1 = new THREE.DirectionalLight(0xffffff, 1.2);
+        light1.position.set(8, 8, 8);
+        light1.castShadow = true;
+        light1.shadow.mapSize.width = 2048;
+        light1.shadow.mapSize.height = 2048;
         scene.add(light1);
         
-        const light2 = new THREE.DirectionalLight(0xff6b6b, 0.5);
-        light2.position.set(-5, -5, 5);
+        const light2 = new THREE.DirectionalLight(0xff6b6b, 0.8);
+        light2.position.set(-8, -5, 5);
         scene.add(light2);
         
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
+        const light3 = new THREE.DirectionalLight(0x7c3aed, 0.6);
+        light3.position.set(5, -8, 8);
+        scene.add(light3);
+        
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
         scene.add(ambientLight);
         
         // Animation loop
         function animate() {
           requestAnimationFrame(animate);
           
-          // Apply velocity to rotation
-          cube.rotation.x += rotationVelocity.x;
-          cube.rotation.y += rotationVelocity.y;
-          cube.rotation.z += rotationVelocity.z;
+          // Update zoom based on hand distance
+          if (predictions.length > 0) {
+            const hand = predictions[0];
+            const palmPos = hand.landmarks[9]; // Palm center
+            const handDepth = palmPos[2] || 0;
+            const normalizedDepth = Math.max(0, Math.min(1, (handDepth + 0.3) / 0.6));
+            targetZoom = 45 + normalizedDepth * 100;
+          }
           
-          // Apply damping (slowdown)
-          rotationVelocity.x *= 0.96;
-          rotationVelocity.y *= 0.96;
-          rotationVelocity.z *= 0.96;
+          camera.fov += (targetZoom - camera.fov) * 0.1;
+          camera.updateProjectionMatrix();
+          
+          // Rotate all objects
+          objects.forEach(obj => {
+            obj.mesh.rotation.x += obj.rotSpeed.x;
+            obj.mesh.rotation.y += obj.rotSpeed.y;
+            if (obj.rotSpeed.z) obj.mesh.rotation.z += obj.rotSpeed.z;
+            
+            // Floating animation for orbs
+            if (obj.basePos) {
+              obj.mesh.position.x = obj.basePos.x + Math.sin(Date.now() * 0.001 + obj.offset) * 0.3;
+              obj.mesh.position.y = obj.basePos.y + Math.cos(Date.now() * 0.001 + obj.offset) * 0.3;
+            }
+          });
+          
+          // Apply scroll/mouse velocity damping
+          rotationVelocity.x *= 0.97;
+          rotationVelocity.y *= 0.97;
+          objects[0].mesh.rotation.x += rotationVelocity.x;
+          objects[0].mesh.rotation.y += rotationVelocity.y;
           
           renderer.render(scene, camera);
         }
         
         animate();
         
-        // Handle window resize
+        // Handle resize
         window.addEventListener('resize', () => {
           const newWidth = canvas.parentElement.clientWidth;
           const newHeight = canvas.parentElement.clientHeight;
@@ -751,28 +843,25 @@
         });
       }
       
-      // Scroll handler - throttled for performance
-      let lastScroll = 0;
+      // Scroll handler
+      let lastScrollY = 0;
       window.addEventListener('scroll', () => {
-        const now = Date.now();
-        if (now - lastScroll > 16) { // ~60fps
-          const scrollY = window.scrollY || window.pageYOffset;
-          rotationVelocity.x += (scrollY - lastScroll) * 0.0008;
-          rotationVelocity.y += (scrollY - lastScroll) * 0.001;
-          lastScroll = now;
-        }
+        const scrollY = window.scrollY || window.pageYOffset;
+        rotationVelocity.x += (scrollY - lastScrollY) * 0.0006;
+        rotationVelocity.y += (scrollY - lastScrollY) * 0.0008;
+        lastScrollY = scrollY;
       }, true);
       
-      // Mouse handler for interactivity
-      let mouseX = 0, mouseY = 0;
+      // Mouse handler
       window.addEventListener('mousemove', (e) => {
-        mouseX = (e.clientX / window.innerWidth) * 2 - 1;
-        mouseY = -(e.clientY / window.innerHeight) * 2 + 1;
-        rotationVelocity.x = mouseY * 0.01;
-        rotationVelocity.y = mouseX * 0.01;
+        const mouseX = (e.clientX / window.innerWidth) * 2 - 1;
+        const mouseY = -(e.clientY / window.innerHeight) * 2 + 1;
+        rotationVelocity.x = mouseY * 0.008;
+        rotationVelocity.y = mouseX * 0.012;
       });
       
       init3D();
+      initHandTracking();
     }
   </script>
 </body>
