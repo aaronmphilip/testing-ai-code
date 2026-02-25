@@ -704,6 +704,17 @@
       let scene, camera, renderer, objects = [], rotationVelocity = { x: 0, y: 0, z: 0 };
       let handpose, predictions = [], baseZoom = 75, targetZoom = 75;
       let tracksHands = false;
+
+      // EMA smoothing for hand size to reduce jitter
+      let smoothedSize = 0;
+      const emaAlpha = 0.12;
+
+      // Calibration values (visual size fraction)
+      let calMinSize = 0.06; // far
+      let calMaxSize = 0.6;  // close
+
+      // Overlay for debug/visualization
+      let overlay = null;
       
       async function initHandTracking() {
         try {
@@ -880,30 +891,60 @@
               const hand = predictions[0];
               if (hand && hand.landmarks && hand.landmarks.length) {
                 // landmarks are [x,y,z] in pixel coordinates for x/y
-                let minY = Infinity, maxY = -Infinity;
+                let minY = Infinity, maxY = -Infinity, minX = Infinity, maxX = -Infinity;
                 for (let i = 0; i < hand.landmarks.length; i++) {
                   const p = hand.landmarks[i];
+                  const x = p[0];
                   const y = p[1];
                   if (y < minY) minY = y;
                   if (y > maxY) maxY = y;
+                  if (x < minX) minX = x;
+                  if (x > maxX) maxX = x;
                 }
                 const boxHeight = Math.max(1, maxY - minY);
+                const boxWidth = Math.max(1, maxX - minX);
                 const videoH = (video && (video.videoHeight || video.height)) || 480;
+                const videoW = (video && (video.videoWidth || video.width)) || 640;
                 const normalizedSize = Math.max(0, Math.min(1, boxHeight / videoH));
 
-                // map normalizedSize to camera FOV: larger hand (bigger box) -> smaller FOV (zoom in)
-                const minSize = 0.06; // roughly very small hand
-                const maxSize = 0.6;  // very close hand
-                const t = Math.max(0, Math.min(1, (normalizedSize - minSize) / (maxSize - minSize)));
+                // EMA smoothing
+                smoothedSize += (normalizedSize - smoothedSize) * emaAlpha;
+
+                // Calibration mapping
+                const minSize = calMinSize;
+                const maxSize = calMaxSize;
+                const t = Math.max(0, Math.min(1, (smoothedSize - minSize) / (maxSize - minSize)));
                 const minFov = 30;
                 const maxFov = 90;
                 targetZoom = maxFov - t * (maxFov - minFov);
 
+                // overlay draw (if present)
+                if (overlay) {
+                  const ctx = overlay.getContext('2d');
+                  overlay.width = canvas.clientWidth;
+                  overlay.height = canvas.clientHeight;
+                  ctx.clearRect(0, 0, overlay.width, overlay.height);
+                  ctx.strokeStyle = 'rgba(255,255,255,0.9)';
+                  ctx.lineWidth = 2;
+                  // map video coords to overlay size
+                  const sx = (minX / videoW) * overlay.width;
+                  const sy = (minY / videoH) * overlay.height;
+                  const sw = (boxWidth / videoW) * overlay.width;
+                  const sh = (boxHeight / videoH) * overlay.height;
+                  ctx.strokeRect(sx, sy, sw, sh);
+                }
+
                 // show a small debug hint
-                handInfo.textContent = 'Hand: ' + Math.round(normalizedSize * 100) + '% — move forward/back to zoom';
+                handInfo.textContent = 'Hand: ' + Math.round(smoothedSize * 100) + '% • Cal:[' + Math.round(minSize*100) + '%,' + Math.round(maxSize*100) + '%]';
               }
             } catch (e) {
               console.error('Hand tracking calc error:', e);
+            }
+          } else {
+            // clear overlay when no hand
+            if (overlay) {
+              const ctx = overlay.getContext('2d');
+              ctx.clearRect(0,0,overlay.width,overlay.height);
             }
           }
           
@@ -941,24 +982,55 @@
           camera.aspect = newWidth / newHeight;
           camera.updateProjectionMatrix();
           renderer.setSize(newWidth, newHeight);
+          if (overlay) {
+            overlay.width = newWidth;
+            overlay.height = newHeight;
+          }
         });
+
+        // create overlay canvas for debugging bounding box
+        overlay = document.createElement('canvas');
+        overlay.style.position = 'absolute';
+        overlay.style.top = '0';
+        overlay.style.left = '0';
+        overlay.style.width = '100%';
+        overlay.style.height = '100%';
+        overlay.style.pointerEvents = 'none';
+        canvas.parentElement.appendChild(overlay);
       }
       
-      // Scroll handler
+      // Scroll/wheel handler (adds momentum)
       let lastScrollY = 0;
       window.addEventListener('scroll', () => {
         const scrollY = window.scrollY || window.pageYOffset;
-        rotationVelocity.x += (scrollY - lastScrollY) * 0.0006;
-        rotationVelocity.y += (scrollY - lastScrollY) * 0.0008;
+        const dy = scrollY - lastScrollY;
+        rotationVelocity.x += dy * 0.00045;
+        rotationVelocity.y += dy * 0.0006;
         lastScrollY = scrollY;
       }, true);
+      window.addEventListener('wheel', (e) => {
+        rotationVelocity.x += (e.deltaY || e.wheelDeltaY || 0) * 0.00035;
+        rotationVelocity.y += (e.deltaX || e.wheelDeltaX || 0) * 0.00035;
+      }, { passive: true });
       
-      // Mouse handler
+      // Mouse handler (gentle steering)
       window.addEventListener('mousemove', (e) => {
         const mouseX = (e.clientX / window.innerWidth) * 2 - 1;
         const mouseY = -(e.clientY / window.innerHeight) * 2 + 1;
-        rotationVelocity.x = mouseY * 0.008;
-        rotationVelocity.y = mouseX * 0.012;
+        rotationVelocity.x = rotationVelocity.x * 0.9 + mouseY * 0.006;
+        rotationVelocity.y = rotationVelocity.y * 0.9 + mouseX * 0.01;
+      });
+
+      // Calibration buttons
+      const calFarBtn = document.getElementById('calFar');
+      const calCloseBtn = document.getElementById('calClose');
+      if (calFarBtn) calFarBtn.addEventListener('click', () => {
+        calMinSize = smoothedSize || calMinSize;
+        handInfo.textContent = 'Calibrated far: ' + Math.round(calMinSize * 100) + '%';
+      });
+      if (calCloseBtn) calCloseBtn.addEventListener('click', () => {
+        calMaxSize = smoothedSize || calMaxSize;
+        handInfo.textContent = 'Calibrated close: ' + Math.round(calMaxSize * 100) + '%';
       });
       
       init3D();
